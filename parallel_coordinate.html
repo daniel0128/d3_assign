@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parallel Coordinate</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <style>
+
+        svg {
+            font: 10px sans-serif;
+        }
+
+        .background path {
+            fill: none;
+            stroke: #ccc;
+            stroke-opacity: .4;
+            shape-rendering: crispEdges;
+        }
+
+        .foreground path {
+            fill: none;
+            stroke: steelblue;
+            stroke-opacity: .7;
+        }
+
+        .brush .extent {
+            fill-opacity: .3;
+            stroke: #fff;
+            shape-rendering: crispEdges;
+        }
+
+        .axis line,
+        .axis path {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }
+
+        .axis text {
+            text-shadow: 0 1px 0 #fff;
+            cursor: move;
+        }
+
+    </style>
+</head>
+<body>
+<script src = "Parallel.js"></script>
+<script> d3.tsv("cadata1000.tsv",render);</script>
+</body>
+</html>
