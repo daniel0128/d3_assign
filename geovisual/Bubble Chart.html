@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--This code is modified from: http://bl.ocks.org/mbostock/4063269-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bubble Chart</title>
+    <style>
+
+        text {
+            font: 10px sans-serif;
+        }
+
+    </style>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+</head>
+<body>
+<script>
+
+    var diameter = 960,
+            format = d3.format(",d"),
+            color = d3.scale.category20c();
+
+    var bubble = d3.layout.pack()
+            .sort(null)
+            .size([diameter, diameter])
+            .padding(1.5);
+
+    var tooltip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([-10, 0])
+            .html(function(d) {
+                return "<strong>Country:</strong> <span style='color:red'>" + d.country + "</span></br>" +
+                        "<strong>Population:</strong> <span style='color:red'>" + d.value + "</span>";
+            });
+
+    var svg = d3.select("body").append("svg")
+            .attr("width", diameter)
+            .attr("height", diameter)
+            .attr("class", "bubble");
+
+    svg.call(tooltip);
+
+    d3.csv("UN.csv", function(error, data) {
+        if (error) throw error;
+
+        data.forEach(function(d) {
+            d.country = d.country;
+            d.gdp = +d.gdp;
+        });
+
+        var node = svg.selectAll(".node")
+                .data(bubble.nodes(classes(data))
+                        .filter(function(d) { return !d.children; }))
+                .enter().append("g")
+                .attr("class", "node")
+                .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+                .on("mouseover", tooltip.show)
+                .on('mouseout', tooltip.hide);
+
+        node.append("title")
+                .text(function(d) { return d.className + ": " + format(d.value); });
+
+        node.append("circle")
+                .attr("r", function(d) { return d.r; })
+                .style("fill", function(d) { return color(d.country); });
+
+        node.append("text")
+                .attr("dy", ".3em")
+                .style("text-anchor", "middle")
+                .text(function(d) { return d.country; });
+    });
+
+    // Returns a flattened hierarchy containing all leaf nodes under the root.
+    function classes(data) {
+        var classes = [];
+
+        data.forEach(function(d){
+            classes.push({value: d.gdp, country: d.country})
+        });
+        return {children: classes};
+    }
+
+    d3.select(self.frameElement).style("height", diameter + "px");
+
+</script>
+</body>
+</html>
