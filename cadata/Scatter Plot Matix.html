@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--this code is modified from:http://bl.ocks.org/mbostock/4063663-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -57,23 +58,19 @@
             .orient("left")
             .ticks(5);
 
-    //var color = d3.scale.category10();
-
     d3.tsv("cadata200.tsv", function(error, data) {
         if (error) throw error;
 
         var domainByTrait = {},
-                traits = d3.keys(data[0]).filter(function(d) { return d !== "id"; }),
+                traits = ["mhv","median income","mha","total rooms","total bedrooms","population","households","latitude","longitude"],
                 n = traits.length;
         //var domainByTrait = {},
         //    traits = d3.keys(data[0]),
         //    n = traits.length;
 
-        console.log(data[0]);
-        console.log(data[1]);
 
         traits.forEach(function(trait) {
-            domainByTrait[trait] = d3.extent(data, function(d) { return d[trait]; });
+            domainByTrait[trait] = d3.extent(data, function(d) { return +d[trait]; });
         });
 
         xAxis.tickSize(size * n);
