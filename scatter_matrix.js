@@ -20,15 +20,15 @@ var yAxis = d3.svg.axis()
 
 //var color = d3.scale.category10();
 
-d3.tsv("cadata1000.tsv", function(error, data) {
+d3.tsv("cadata200.tsv", function(error, data) {
     if (error) throw error;
 
-    //var domainByTrait = {},
-    //    traits = d3.keys(data[0]).filter(function(d) { return d !== "species"; }),
-    //    n = traits.length;
     var domainByTrait = {},
-        traits = d3.keys(data[0]),
+        traits = d3.keys(data[0]).filter(function(d) { return d !== "id"; }),
         n = traits.length;
+    //var domainByTrait = {},
+    //    traits = d3.keys(data[0]),
+    //    n = traits.length;
 
     console.log(data[0]);
     console.log(data[1]);

@@ -1,8 +1,8 @@
-var margin = {left:10,right:10,top:30,bottom:10},
-    w = 1236 - margin.left - margin.right,
-    h = 700 - margin.top - margin.bottom;
+var margin = {top: 30, right: 10, bottom: 10, left: 10},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
-var x = d3.scale.ordinal().rangePoints([0, w], 1),
+var x = d3.scale.ordinal().rangePoints([0, width], 1),
     y = {},
     dragging = {};
 
@@ -12,19 +12,22 @@ var line = d3.svg.line(),
     foreground;
 
 var svg = d3.select("body").append("svg")
-    .attr("width", w + margin.left + margin.right)
-    .attr("height", h + margin.top + margin.bottom)
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-function render(error,data){
-    if(error) throw error;
-    x.domain(dimensions = d3.keys(data[0]).filter(function(d) {
-        return y[d] = d3.scale.linear()
-            .domain(d3.extent(data, function(p) { return +p[d]; }))
-            .range([h, 0]);
+function render(error,data) {
+    // Extract the list of dimensions and create a scale for each.
+    x.domain(dimensions = d3.keys(data[0]).filter(function (d) {
+        return d != "id" && (y[d] = d3.scale.linear()
+                .domain(d3.extent(data, function (p) {
+                    return +p[d];
+                }))
+                .range([height, 0]));
     }));
 
+    // Add grey background lines for context.
     background = svg.append("g")
         .attr("class", "background")
         .selectAll("path")
@@ -32,6 +35,7 @@ function render(error,data){
         .enter().append("path")
         .attr("d", path);
 
+    // Add blue foreground lines for focus.
     foreground = svg.append("g")
         .attr("class", "foreground")
         .selectAll("path")
@@ -39,29 +43,37 @@ function render(error,data){
         .enter().append("path")
         .attr("d", path);
 
+    // Add a group element for each dimension.
     var g = svg.selectAll(".dimension")
         .data(dimensions)
         .enter().append("g")
         .attr("class", "dimension")
-        .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
+        .attr("transform", function (d) {
+            return "translate(" + x(d) + ")";
+        })
         .call(d3.behavior.drag()
-            .on("dragstart", function(d) {
-                dragging[d] = this.__origin__ = x(d);
+            .origin(function (d) {
+                return {x: x(d)};
+            })
+            .on("dragstart", function (d) {
+                dragging[d] = x(d);
                 background.attr("visibility", "hidden");
             })
-            .on("drag", function(d) {
-                dragging[d] = Math.min(w, Math.max(0, this.__origin__ += d3.event.dx));
+            .on("drag", function (d) {
+                dragging[d] = Math.min(width, Math.max(0, d3.event.x));
                 foreground.attr("d", path);
-                dimensions.sort(function(a, b) { return position(a) - position(b); });
+                dimensions.sort(function (a, b) {
+                    return position(a) - position(b);
+                });
                 x.domain(dimensions);
-                g.attr("transform", function(d) { return "translate(" + position(d) + ")"; })
+                g.attr("transform", function (d) {
+                    return "translate(" + position(d) + ")";
+                })
             })
-            .on("dragend", function(d) {
-                delete this.__origin__;
+            .on("dragend", function (d) {
                 delete dragging[d];
                 transition(d3.select(this)).attr("transform", "translate(" + x(d) + ")");
-                transition(foreground)
-                    .attr("d", path);
+                transition(foreground).attr("d", path);
                 background
                     .attr("d", path)
                     .transition()
@@ -70,22 +82,30 @@ function render(error,data){
                     .attr("visibility", null);
             }));
 
+    // Add an axis and title.
     g.append("g")
         .attr("class", "axis")
-        .each(function(d) { d3.select(this).call(axis.scale(y[d])); })
+        .each(function (d) {
+            d3.select(this).call(axis.scale(y[d]));
+        })
         .append("text")
-        .attr("text-anchor", "middle")
+        .style("text-anchor", "middle")
         .attr("y", -9)
-        .text(String);
+        .text(function (d) {
+            return d;
+        });
 
     // Add and store a brush for each axis.
     g.append("g")
         .attr("class", "brush")
-        .each(function(d) { d3.select(this).call(y[d].brush = d3.svg.brush().y(y[d]).on("brushstart", brushstart).on("brush", brush)); })
+        .each(function (d) {
+            d3.select(this).call(y[d].brush = d3.svg.brush().y(y[d]).on("brushstart", brushstart).on("brush", brush));
+        })
         .selectAll("rect")
         .attr("x", -8)
         .attr("width", 16);
 }
+
 function position(d) {
     var v = dragging[d];
     return v == null ? x(d) : v;
@@ -100,7 +120,6 @@ function path(d) {
     return line(dimensions.map(function(p) { return [position(p), y[p](d[p])]; }));
 }
 
-// When brushing, don’t trigger axis dragging.
 function brushstart() {
     d3.event.sourceEvent.stopPropagation();
 }
@@ -115,4 +134,3 @@ function brush() {
         }) ? null : "none";
     });
 }
-//d3.tsv("cadata.tsv",render);
