@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--the code is modified from:http://curran.github.io/screencasts/introToD3/examples/viewer/#/107-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -32,12 +33,12 @@
 
     var outerWidth = 1200;
     var outerHeight = 700;
-    var margin = { left: 140, top: 5, right: 5, bottom: 60 };
+    var margin = { left: 0.1*outerWidth, top: 0.1*outerHeight, right: 0.1*outerWidth, bottom: 0.1*outerHeight };
 
-    var xColumn = "id";
+    var xColumn = "mha";
     var yColumn = "mhv";
 
-    var xAxisLabelText = "id";
+    var xAxisLabelText = "Median house Age";
     var xAxisLabelOffset = 48;
 
     var yAxisLabelText = "Median House Value";
@@ -83,15 +84,11 @@
             .outerTickSize(0);
 
     var line = d3.svg.line()
-            .x(function(d) {
-                console.log(d);
-                console.log(xColumn);
-                console.log(d[xColumn]);
-                console.log(xScale(d[xColumn]));
-                return xScale(d[xColumn]); })
+            .x(function(d) { return xScale(d[xColumn]); })
             .y(function(d) { return yScale(d[yColumn]); });
 
     function render(data){
+        data = sortByAge(data);
         xScale.domain(d3.extent(data, function (d){ return d[xColumn]; }));
 //        xScale.domain(data.map(function(d){return d.id;}));
         yScale.domain(d3.extent(data, function (d){ return d[yColumn]; }));
@@ -103,12 +100,18 @@
     }
 
     function type(d){
-        d.id = +d.id;
+        d.mha = +d.mha;
         d.mhv = +d.mhv;
         return d;
     }
+    function sortByAge(d){
+        d.sort(function(a,b){
+            return b.mha - a.mha;
+        });
+        return d;
+    }
 
-    d3.tsv("cadata200.tsv", type, render);
+    d3.tsv("cadata.tsv", type, render);
 
 </script>
 </body>
